@@ -925,6 +925,10 @@ namespace TFW {
         int frameThick = 5;
         /// timer interval as set with SetTimer()
         float timerInterval = 0.0f;
+        /// Saved mode and position before switching to VR
+        XPLMWindowPositioningMode beforeVRPosMode = xplm_WindowPositionFree;
+        /// Saved mode and position before switching to VR
+        Rect beforeVRGeometry;
     public:
         /// Main window coordinates are global coordinates
         MainWnd (const std::string& _caption,
@@ -963,7 +967,9 @@ namespace TFW {
         /// Reads the current window's geometry and stores it in the `Rect` members
         virtual void FetchGeometry ()
         { XPLMGetWindowGeometry (wnd, &Left(), &Top(), &Right(), &Bottom()); }
-        
+        /// Resizing means different things in different positioning modes
+        virtual void SetGeometry(const Rect &_r);
+
         /// @brief Center the window on the main screen, then switch to floating type
         /// @param _bVisible Shall window be visible or not at the end?
         /// @param _monitorIdx Monitor index the window shall appear on, negative for XP's main window
@@ -972,6 +978,11 @@ namespace TFW {
         
         /// Move the window to the same position (top/left corner) as the window passed in
         virtual void SetPosAs (const MainWnd& _o);
+        
+        /// Move the window into VR, saves current mode/pos to be able to get back there
+        virtual void MoveIntoVR ();
+        /// Move the window out of VR, back to what it was when calling MoveIntoVR()
+        virtual void MoveOutOfVR ();
         
         /// Set positioning mode
         /// @see https://developer.x-plane.com/sdk/XPLMDisplay/#XPLMSetWindowPositioningMode

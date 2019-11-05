@@ -43,6 +43,7 @@
 
 // include X-Plane SDK headers
 #include "XPLMMenus.h"
+#include "XPLMPlugin.h"
 
 //
 // MARK: Declaration of example window
@@ -276,6 +277,17 @@ void RemoveTheWnd()
     pTheWnd.reset(nullptr);
 }
 
+// Move the window into and out of VR
+void MoveWndVR (bool _bIntoVR)
+{
+    if (pTheWnd) {
+        if (_bIntoVR)
+            pTheWnd->MoveIntoVR();
+        else
+            pTheWnd->MoveOutOfVR();
+    }
+}
+
 
 //
 // MARK: Handle one menu entry
@@ -327,7 +339,24 @@ PLUGIN_API int  XPluginEnable(void)
     return 1;
 }
 
-PLUGIN_API void XPluginReceiveMessage(XPLMPluginID /*inFrom*/, int /*inMsg*/, void * /*inParam*/) { }
+PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFrom, int inMsg, void * /*inParam*/)
+{
+    // we only process msgs from X-Plane
+    if (inFrom != XPLM_PLUGIN_XPLANE)
+        return;
+        
+    switch (inMsg) {
+        // *** entering VR mode ***
+        case XPLM_MSG_ENTERED_VR:
+            MoveWndVR(true);
+            break;
+            
+        // *** existing from VR mode ***
+        case XPLM_MSG_EXITING_VR:
+            MoveWndVR(false);
+            break;
+    }
+}
 
 PLUGIN_API void XPluginDisable(void)
 {

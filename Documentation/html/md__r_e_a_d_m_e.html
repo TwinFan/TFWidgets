@@ -45,22 +45,31 @@ $(function() {
 <div class="contents">
 <div class="textblock"><p>Simple widgets for modern XP11 windows, i.e. without using XP's old-style widgets.</p>
 <h2><a class="el" href="namespace_t_f_w.html" title="Encapsulates all TFW widget definitions.">TFW</a> files</h2>
-<p>You only need to include 2 files into your own projects:</p><ul>
+<p>You only need to include 4 files into your own projects:</p><ul>
 <li><code><a class="el" href="_t_f_w_8cpp.html" title="Implements widget classes for XP11 without using XP&#39;s widgets but OpenGL drawing.">TFW.cpp</a></code></li>
 <li><code><a class="el" href="_t_f_w_8h.html" title="Defines widget classes for XP11 without using XP&#39;s widgets but OpenGL drawing.">TFW.h</a></code></li>
+<li><code>TFWGraphcs.cpp</code></li>
+<li><code>TFWGraphcs.h</code></li>
 </ul>
-<p>Both files include lots of comments in Doxygen style as documentation. The generated Doxygen documentation is available in <code>Documentation/html/index.html</code>.</p>
+<p>All definitions are encapsulated in the namespace <code><a class="el" href="namespace_t_f_w.html" title="Encapsulates all TFW widget definitions.">TFW</a></code>.</p>
+<p>All files include lots of comments in Doxygen style as documentation. The generated Doxygen documentation is available in <code>Documentation/html/index.html</code>.</p>
 <h2>Example Plugin Implementation</h2>
 <p>The <code>Example</code> folder includes an example X-Plane plugin (based on the <a href="https://developer.x-plane.com/code-sample/hello-world-sdk-3/">Hello World plugin</a>), which demonstrates how to use TFWidgets.</p>
-<p>The plugin just opens a windows with lots of example widgets.</p>
+<p>The plugin just opens a windows with lots of example widgets. It doesn't look nice any longer...but it has lots of widgets ;-)</p>
 <h2>Building the Example</h2>
+<h3>Docker</h3>
+<p>A docker environment to build all 3 platforms is included.</p>
+<ul>
+<li>Install <a href="https://www.docker.com/products/docker-desktop">Docker Desktop</a></li>
+<li>In a terminal window, change directory to <code>TFWidgets/Example/docker</code></li>
+<li>Type <code>make</code></li>
+</ul>
+<p>The docker environment will be downloaded and installed, which takes several minutes, but is needed only once. Thereafter the actual build takes place.</p>
+<p>Resulting binaries are in <code>TFWidgets/Example/build-[lin/mac/win]</code></p>
+<h3>IDE</h3>
 <ul>
 <li>Mac: Open the XCode project <code>TFWidgets.xcodeproj</code>. There might be paths you way want to check...especially the path the resulting plugin is copied to after build (Targets &gt; Build Phases &gt; Copy Files).</li>
-<li>Windows: Open the Visual Studio solution <code>TFWidgets.sln</code>. Also here you might need to check directories. There is a copy command to my X-Plane installation in the <em>Post Build Event</em>.</li>
-<li>Linux: As I don't have a Linux environment myself I provide a Docker environment to build the Linux version based on a <code>CMakeList</code>. I have not tested the resulting binary <code>TFWExample-lin.xpl</code>. Can't even say if it starts.</li>
-<li>You need <a href="https://www.docker.com/get-started">Docker</a> installed. The, with Docker app running:</li>
-<li><code>cd Example/docker</code></li>
-<li><code>make</code> </li>
+<li>Windows: Open the Visual Studio solution <code>TFWidgets.sln</code>. Also here you might need to check directories. There is a copy command to my X-Plane installation in the <em>Post Build Event</em>. </li>
 </ul>
 </div></div><!-- PageDoc -->
 </div><!-- contents -->

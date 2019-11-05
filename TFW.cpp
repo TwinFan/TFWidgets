@@ -2053,6 +2053,30 @@ namespace TFW {
         XPLMSetWindowTitle(wnd, caption.full_str());
     }
 
+    // Resizing means different things in different positioning modes
+    /// @param _r Target coordinates, if window is popped out this shall be OS coordinates!
+    void MainWnd::SetGeometry(const Rect &_r)
+    {
+        // pass up the class hierarchy
+        Widget::SetGeometry(_r);
+        
+        // Main window resizing depends on positioning mode
+        switch (GetPositioningMode())
+        {
+            case xplm_WindowVR:
+                // VR supports setting of width/height only
+                XPLMSetWindowGeometryVR(*this, _r.Width(), _r.Height());
+                break;
+                
+            case xplm_WindowPopOut:
+                XPLMSetWindowGeometryOS(*this, _r.Left(), _r.Top(), _r.Right(), _r.Bottom());
+                break;
+                
+            default:
+                XPLMSetWindowGeometry(*this, _r.Left(), _r.Top(), _r.Right(), _r.Bottom());
+        }
+    }
+
     // Center the window on the main screen, then switch to floating type
     void MainWnd::SetCenterFloat (bool _bVisible, int _monitorIdx)
     {
@@ -2098,6 +2122,49 @@ namespace TFW {
                 XPLMGetWindowGeometry(_o, &l, &t, nullptr, nullptr);
                 XPLMSetWindowGeometry(*this, l, t, l+Width(), t-Height());
         }
+    }
+
+    // Move the window into VR, saves current mode/pos to be able to get back there
+    /// @note There is no way provide to control the position in VR by code.
+    ///       The window will just show up in the cockpit and can be moved by the user from there.
+    void MainWnd::MoveIntoVR ()
+    {
+        // Sanity check: return if we are in VR already
+        const XPLMWindowPositioningMode currMode = GetPositioningMode();
+        if (currMode == xplm_WindowVR)
+            return;
+        
+        // Save current positioning mode and coordinates
+        beforeVRPosMode = currMode;
+        if (beforeVRPosMode == xplm_WindowPopOut) {
+            XPLMGetWindowGeometryOS(*this,
+                                    &beforeVRGeometry.Left(),
+                                    &beforeVRGeometry.Top(),
+                                    &beforeVRGeometry.Right(),
+                                    &beforeVRGeometry.Bottom());
+        } else {
+            XPLMGetWindowGeometry(*this,
+                                  &beforeVRGeometry.Left(),
+                                  &beforeVRGeometry.Top(),
+                                  &beforeVRGeometry.Right(),
+                                  &beforeVRGeometry.Bottom());
+        }
+        
+        // Now go virtual
+        SetPositioningMode (xplm_WindowVR, -1);
+        XPLMSetWindowGeometryVR(*this, Width(), Height());
+    }
+
+    // Move the window out of VR, back to what it was when calling MoveIntoVR()
+    void MainWnd::MoveOutOfVR ()
+    {
+        // Sanity check: return if we aren't in VR
+        if (GetPositioningMode() != xplm_WindowVR)
+            return;
+        
+        // Restore saved mode and geometry
+        SetPositioningMode(beforeVRPosMode, -1);
+        SetGeometry(beforeVRGeometry);
     }
 
     // Tries to figure out the positioning mode
