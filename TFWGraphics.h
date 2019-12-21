@@ -24,6 +24,7 @@
 
 #include <cassert>
 #include <valarray>
+#include <cmath>
 
 /// Encapsulates all TFW widget definitions
 namespace TFW {
@@ -32,6 +33,9 @@ namespace TFW {
     // MARK: Geometry
     //
     
+    /// Pi
+    constexpr double PI         = 3.1415926535897932384626433832795028841971693993751;
+
     /// @brief Groups x,y coordinate as an valarray to define a point in a coordinate system
     ///
     /// `valarray` has same memory storage as a C array, but also provides
@@ -58,6 +62,10 @@ namespace TFW {
         Point  operator -  (const Point& o) const { return Point(pt - o.pt); }
         /// move by an offset
         Point& operator -= (const Point& o)       { pt -= o.pt; return *this; }
+        /// Scalar multiplication
+        Point  operator *  (const int i)    const { return Point(pt * i); }
+        /// Scalar multiplication
+        Point& operator *= (const int i)          { pt *= i; return *this; }
 
         /// compare for equality
         bool operator == (const Point& o) const { return x()==o.x() && y()==o.y(); }
@@ -68,6 +76,14 @@ namespace TFW {
         operator const int* () const { return &(pt[0]); }
         /// access as an array of two ints, returnathe address of the first
         operator       int* ()       { return &(pt[0]); }
+        
+        /// Returns a point on a circle (with 0 rad being on top, counting clockwise)
+        static Point byRad (double rad, double radius)
+        { return Point((int)lround(std::sin(rad) * radius),
+                       (int)lround(std::cos(rad) * radius)); }
+        /// Returns a point on a circle (with 0° being on top, counting clockwise)
+        static Point byDeg (double deg, double radius=1.0)
+        { return byRad (deg * PI / 180, radius ); }
     };
     
     /// Rectangle defined by two points bottom-left and top-right, normalized so the `bl` < `tr`
@@ -194,6 +210,13 @@ namespace TFW {
     /// @param _bSel Selected? `true` for drawing an inside diamond
     /// @param _bThick Draw a thick frame around the radio button instead of a thin?
     void DrawRadioButton (const Rect& _r, bool _bSel, bool _bThick);
+
+    /// @brief Draw  an approximation of a circle
+    /// @param _c Center point of circle
+    /// @param _r radius
+    /// @param _bFilled Filled circle (as opposed to circumfence ony)?
+    /// @param _coarseness Max length of a segment, less = finer, but more expensive
+    void DrawCircle (const Point& _c, int _r, bool _bFilled = false, int _coarseness = 5);
 
 } // namespace "TFW"
 

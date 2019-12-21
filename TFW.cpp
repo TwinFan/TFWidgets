@@ -2129,6 +2129,9 @@ namespace TFW {
     ///       The window will just show up in the cockpit and can be moved by the user from there.
     void MainWnd::MoveIntoVR ()
     {
+        // Only reasonable for visible windows as GetPositiongMode does otherwise not work
+        if (!IsVisible()) return;
+
         // Sanity check: return if we are in VR already
         const XPLMWindowPositioningMode currMode = GetPositioningMode();
         if (currMode == xplm_WindowVR)
@@ -2149,15 +2152,21 @@ namespace TFW {
                                   &beforeVRGeometry.Right(),
                                   &beforeVRGeometry.Bottom());
         }
-        
+
         // Now go virtual
         SetPositioningMode (xplm_WindowVR, -1);
         XPLMSetWindowGeometryVR(*this, Width(), Height());
+        
+        int w = 0, h = 0;
+        XPLMGetWindowGeometryVR(*this, &w, &h);
     }
 
     // Move the window out of VR, back to what it was when calling MoveIntoVR()
     void MainWnd::MoveOutOfVR ()
     {
+        // Only reasonable for visible windows as GetPositiongMode does otherwise not work
+        if (!IsVisible()) return;
+
         // Sanity check: return if we aren't in VR
         if (GetPositioningMode() != xplm_WindowVR)
             return;
@@ -2170,6 +2179,10 @@ namespace TFW {
     // Tries to figure out the positioning mode
     /// There is no direct call in the XP SDK to figure out the positioning mode,
     /// but only function to check for popped out or VR
+    /// @note Seems like `XPLMWindowIsPoppedOut` and
+    ///       and `XPLMWindowIsInVR` always return `false`
+    ///       for invisible windows, even if they had been in OS/VR before!
+    ///       So for invisible windows this functionalways  returns `xplm_WindowPositionFree`.
     XPLMWindowPositioningMode MainWnd::GetPositioningMode () const
     {
         if (XPLMWindowIsPoppedOut(*this))
@@ -2300,8 +2313,10 @@ namespace TFW {
         if (bLayoutDirty)
             Layout();
         
-        // apparently I'm visible, otherwise I wouldn't get called
-        bVisible = true;
+        // apparently I'm visible, otherwise DoDraw wouldn't get called
+        // Let's call ourself so that derived classes get to know, too
+        if (!bVisible)
+            SetVisible(true);
         
         // if requested now that we know coordinates set a (different) positioning mode
         if (resetPosModeTo >= 0) {
@@ -2399,6 +2414,7 @@ namespace TFW {
             if (pFocusWidget && inFlags == xplm_DownFlag)
                 pFocusWidget->w.DoFocusChange(FCS_LOOSE);
             pFocusWidget = nullptr;
+            TakeKeyboardFocus(false);       // give up keyboard, return to X-Plane
         }
         // Handle the [Enter] key for applying default push button
         else if (inVirtualKey == XPLM_VK_RETURN || inVirtualKey == XPLM_VK_ENTER) {

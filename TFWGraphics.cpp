@@ -40,7 +40,7 @@
 
 /// Encapsulates all TFW widget definitions
 namespace TFW {
-
+    
     /// Ensures that elements in `bl` have the smaller values compared to `tr`
     void Rect::Normalize()
     {
@@ -165,5 +165,23 @@ namespace TFW {
             });
     }
 
-    
+    // Draw an approximation of a circle
+    /// @see https://community.khronos.org/t/how-to-draw-circle/59661/6
+    void DrawCircle (const Point& _c, int _r, bool _bFilled, int _coarseness)
+    {
+        // Coarseness defines number of segements, which is just
+        // circumfence divided by _coarseness:
+        const double numSeg = round((2*PI*_r) / _coarseness);
+        
+        // Draw the circle as a number of chords
+        glBegin(_bFilled ? GL_POLYGON : GL_LINE_LOOP);
+        for (int i = 0; i < numSeg; i++) {
+            double heading = 2 * PI * i/numSeg;         // radians
+            glVertex2d(_c.x() + std::cos(heading) * _r,
+                       _c.y() + std::sin(heading) * _r);
+        }
+        glEnd();
+
+    }
+
 } // namespace "TFW"
