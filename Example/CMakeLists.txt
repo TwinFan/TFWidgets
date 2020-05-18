@@ -36,21 +36,36 @@ add_definitions(-DXPLM200=1 -DXPLM210=1 -DXPLM300=1 -DXPLM301=1)
 # Define platform macros.
 add_definitions(-DAPL=$<BOOL:${APPLE}> -DIBM=$<BOOL:${WIN32}> -DLIN=$<AND:$<BOOL:${UNIX}>,$<NOT:$<BOOL:${APPLE}>>>)
 
-# Force-enable exception support. This is most likely redundant, although for C
-# code the default is the opposite. Since we are mixing C++ and C libraries,
-# safer to set it on?
-add_compile_options(-fexceptions -fpermissive)
-
-# On UNIX systems this makes symbols non-exported by default. On Windows this
-# option is simply ignored, since symbol visibility works differently there.
-add_compile_options(-fvisibility=hidden)
-
 # Enable stricter warnings and then disable some we are not interested in.
-add_compile_options(-Wall -Wshadow -Wfloat-equal -Wextra)
-add_compile_options(-Wno-unused)
+# For XPMP2 compile, we don't need to be warned about our self-defined depreciations
+if (WIN32)
+    add_compile_options(/wd4996 /wd4068)
+else()
+    add_compile_options(-Wall -Wshadow -Wfloat-equal -Wextra -Wno-deprecated-declarations -Wno-unknown-pragmas)
 
-# Always use position-independent code and highest optimization level (FPS!).
-add_compile_options(-O3 -fPIC)
+    # Force-enable exception support. This is most likely redundant, although for C
+    # code the default is the opposite. Since we are mixing C++ and C libraries,
+    # safer to set it on?
+    add_compile_options(-fexceptions -fpermissive)
+
+    # On UNIX systems this makes symbols non-exported by default. On Windows this
+    # option is simply ignored, since symbol visibility works differently there.
+    add_compile_options(-fvisibility=hidden)
+endif()
+
+
+# Debug build?
+if(CMAKE_BUILD_TYPE MATCHES "Debug")
+    add_compile_options(-DDEBUG=1)
+	set(XPMP2_DEBUG ON)
+else()
+	set(XPMP2_DEBUG OFF)
+
+    if (UNIX)
+        # Use position-independent code and highest optimization level (FPS!).
+        add_compile_options(-O3 -fPIC)
+    endif()
+endif()
 
 ################################################################################
 # Source groups
@@ -58,16 +73,16 @@ add_compile_options(-O3 -fPIC)
 set(Header_Files
     ../TFW.h
     ../TFWGraphics.h
-    ../../clip/clip_lock_impl.h
-    ../../clip/clip.h
+    ../clip/clip_lock_impl.h
+    ../clip/clip.h
 )
 source_group("Header Files" FILES ${Header_Files})
 
 set(Source_Files
     ../TFW.cpp
     ../TFWGraphics.cpp
-    ../../clip/image.cpp
-    ../../clip/clip.cpp
+    ../clip/image.cpp
+    ../clip/clip.cpp
     TFWExample.cpp
 )
 
@@ -76,10 +91,10 @@ set(Source_Files
 ################################################################################
 if(WIN32)
     add_definitions(-D_SCL_SECURE_NO_WARNINGS)
-    list(APPEND Source_Files ../../clip/clip_win.cpp)
+    list(APPEND Source_Files ../clip/clip_win.cpp)
 elseif(APPLE)
 #    add_definitions(-fobjc-arc)
-    list(APPEND Source_Files ../../clip/clip_osx.mm)
+    list(APPEND Source_Files ../clip/clip_osx.mm)
 elseif(UNIX)
     include(CheckIncludeFiles)
     check_include_files(xcb/xcb.h HAVE_XCB_XLIB_H)
@@ -87,12 +102,12 @@ elseif(UNIX)
     if(HAVE_XCB_XLIB_H)
         add_definitions(-DHAVE_XCB_XLIB_H)
 
-        list(APPEND Source_Files ../../clip/clip_x11.cpp)
+        list(APPEND Source_Files ../clip/clip_x11.cpp)
     else()
-        list(APPEND Source_Files ../../clip/clip_none.cpp)
+        list(APPEND Source_Files ../clip/clip_none.cpp)
     endif()
 else()
-    list(APPEND CLIP_SOURCES ../../clip/clip_none.cpp)
+    list(APPEND CLIP_SOURCES ../clip/clip_none.cpp)
 endif()
 
 
@@ -154,10 +169,11 @@ endif ()
 
 if (WIN32)
     # Unlike OS X and Linux we build standard libraries statically since X-Plane does not provide them.
-    target_link_libraries(TFWidgets -static-libgcc -static-libstdc++ opengl32)
+    # mingw only? - target_link_libraries(TFWidgets -static-libgcc -static-libstdc++)
+    target_link_libraries(TFWidgets opengl32)
     # MSYS2 for some reason always links against winpthread, so we have to work around it by statically linking the
     # entire plugin. This allows building the plugin nativaly on Windows.
-    target_link_libraries(TFWidgets -static)
+    # mingw only? - target_link_libraries(TFWidgets -static)
 elseif (APPLE)
     # Restrict set of symbols exported from the plugin. This reduces changes of
     # conflict with other plugins, in particular ones with Lua interpreter
