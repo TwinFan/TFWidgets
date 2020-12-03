@@ -1,6 +1,10 @@
 # TFWidgets
 Simple widgets for modern XP11 windows, i.e. without using XP's old-style widgets.
 
+## Note: Outdated, archived!
+
+For new projects consider using imgui. A sample implementation is available as [sparker256/imgui4xp](https://github.com/sparker256/imgui4xp).
+
 ## TFW files
 
 You only need to include 4 files into your own projects:
